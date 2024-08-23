@@ -7,6 +7,9 @@ const generateToken = (id) => jwt.sign({ userId: id }, process.env.JWT_SECRET, {
 export const Register = async (req, res, next) => {
     try {
         const { email, password } = req.body;
+
+        if (!email || !password) return res.status(400).json({ message: "Please fill in all the required fields" })
+
         const existingUser = await AuthModel.findOne({ email });
 
         if (existingUser) return res.status(403).json({ message: "Email already exists" });
@@ -28,6 +31,7 @@ export const Register = async (req, res, next) => {
 export const LogIn = async (req, res, next) => {
     try {
         const { email, password } = req.body;
+        if (!email || !password) return res.status(400).json({ message: "Please fill in all the required fields" })
 
         const user = await AuthModel.findOne({ email });
         if (!user) return res.status(404).json({ message: "Invalid email address" });
