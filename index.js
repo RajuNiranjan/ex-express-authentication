@@ -1,15 +1,21 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
-import dotenv from 'dotenv'
+import { authRouter } from './routes/auth.router.js'
+import './db.js'
+import { ENV_VARS } from './config/envVars.js'
 
-dotenv.config()
+
 
 const app = express()
-const PORT = process.env.PORT || 5000
+const PORT = ENV_VARS.PORT || 5000
+
+app.use(express.json())
 
 app.get('/', (req, res) => {
     return res.status(200).json({ message: "Hello There" });
 })
+
+app.use('/api/auth', authRouter)
 
 
 app.listen(PORT, () => console.log(`server is running at port number : ${PORT}`))
