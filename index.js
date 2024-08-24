@@ -1,19 +1,16 @@
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
-import cors from 'cors'
-import './db.js'
-import { AuthRouter } from './routers/auth.router.js'
 
 dotenv.config()
 
 const app = express()
-const port = process.env.PORT || 5000
+const PORT = process.env.PORT || 5000
 
-app.use(express.json())
-app.use(cors({ origin: '*', credentials: true }))
+app.get('/', (req, res) => {
+    return res.status(200).json({ message: "Hello There" });
+})
 
-app.get('/', (req, res) => res.status(200).json({ message: "welcome to ex-express-authentication" }))
 
-app.use('/api/auth', AuthRouter)
+app.listen(PORT, () => console.log(`server is running at port number : ${PORT}`))
 
-app.listen(port, () => console.log(`server running in port number ${port}`))
