@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ENV_VARS } from './config/envVars.js'
+import { ENV_VARS } from './envVars.js'
 
 
 

@@ -42,6 +42,40 @@ export const Register = async (req, res) => {
     }
 }
 
+export const LogIn = async (req, res) => {
+    try {
+        const { email, password } = req.body
+
+        if (!email || !password) return res.status(400).json({ message: "please fill all the fileds" })
+
+        const user = await UserModel.findOne({ email })
+
+        if (!user) return res.status(404).json({ message: "Invalid email address" })
+
+        const verifyPassword = await bcrypt.compare(password, user.password
+        )
+
+        if (!verifyPassword) return res.status(403).json({ message: "Invalid creadentials" })
+
+        const userResponse = {
+            _id: user._id,
+            userName: user.userName,
+            email: user.email,
+            image: user.image
+        }
+
+        generateTokenAndSetCookie(user._id, res)
+
+        res.status(200).json({ message: "user login successfully", user: userResponse })
+
+
+    } catch (error) {
+        console.log(error);
+        return res.state(500).json('Internal server error during Login')
+    }
+}
+
+
 export const LogOut = async (req, res) => {
     try {
         res.clearCookie("token");

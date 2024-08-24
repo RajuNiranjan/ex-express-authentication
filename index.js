@@ -1,7 +1,7 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import { authRouter } from './routes/auth.router.js'
-import './db.js'
+import './config/db.js'
 import { ENV_VARS } from './config/envVars.js'
 
 
