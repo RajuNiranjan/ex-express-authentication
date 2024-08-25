@@ -1,22 +1,19 @@
-import express from 'express'
-import cookieParser from 'cookie-parser'
-import { authRouter } from './routes/auth.router.js'
-import './config/db.js'
-import { ENV_VARS } from './config/envVars.js'
+import express from "express";
+import "./utils/db.js";
+import { ENV_VAR } from "./config/envVariables.js";
+import cors from "cors";
+import { authRouter } from "./routes/auth.router.js";
 
+const app = express();
+const PORT = ENV_VAR.PORT;
 
+app.use(express.json());
+app.use(cors());
 
-const app = express()
-const PORT = ENV_VARS.PORT || 5000
+app.get("/", (req, res) => {
+  res.json({ message: "Hello There!!!" });
+});
 
-app.use(express.json())
+app.use("/api/auth", authRouter);
 
-app.get('/', (req, res) => {
-    return res.status(200).json({ message: "Hello There" });
-})
-
-app.use('/api/auth', authRouter)
-
-
-app.listen(PORT, () => console.log(`server is running at port number : ${PORT}`))
-
+app.listen(PORT, () => console.log(`server running at port number: ${PORT}`));

@@ -1,87 +1,65 @@
 import { UserModel } from "../models/user.model.js";
-import bcrypt from 'bcryptjs'
-import { generateTokenAndSetCookie } from "../utils/generateToken.js";
+import bcrypt from "bcryptjs";
+import { GenToken } from "../utils/genToken.js";
 
 export const Register = async (req, res) => {
-    try {
-        const { userName, email, password } = req.body
+  try {
+    const { userName, email, password } = req.body;
 
-        if (!email || !password || !userName) return res.status(400).json({ success: false, message: "please fill all the fields" })
+    if (!email || !password || !userName)
+      return res.status(400).json({ message: "please fill all the fields" });
 
-        const existingUser = await UserModel.findOne({ $or: [{ email: email }, { userName: userName }] })
+    const existingUser = await UserModel.findOne({
+      $or: [{ email }, { userName }],
+    });
 
-        if (existingUser) return res.status(404).json({ message: "user already existed" })
+    if (existingUser)
+      return res
+        .status(403)
+        .json({ message: "email  or username already exist" });
 
-        const salt = await bcrypt.genSalt(12)
-        const hashPassword = await bcrypt.hash(password, salt)
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
 
-        const PROFILE_PICS = ["/avatar1.png", "/avatar2.png", "/avatar3.png"];
-        const image = PROFILE_PICS[Math.floor(Math.random() * PROFILE_PICS.length)];
+    const newUser = new UserModel({ email, userName, password: hashPassword });
 
-        const newUser = new UserModel({
-            email,
-            userName,
-            password: hashPassword,
-            image
-        })
+    await newUser.save();
 
-        generateTokenAndSetCookie(newUser._id, res)
-        await newUser.save()
-        const userResponse = {
-            _id: newUser._id,
-            userName: newUser.userName,
-            email: newUser.email,
-            image: newUser.image
-        }
+    const token = GenToken(newUser._id);
+    return res
+      .status(201)
+      .json({ message: "registration successfully", token: token });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ message: "Internal server error during  registration" });
+  }
+};
 
-        res.status(201).json({ message: "user registerd successfully", user: userResponse })
+export const LogIN = async (req, res) => {
+  try {
+    const { password, email } = req.body;
 
-    } catch (error) {
-        console.log(error);
-        return res.state(500).json('Internal server error during Register')
-    }
-}
+    if (!email || !password)
+      return res.status(400).json({ message: "Please fill all the fields" });
 
-export const LogIn = async (req, res) => {
-    try {
-        const { email, password } = req.body
+    const user = await UserModel.findOne({ email });
 
-        if (!email || !password) return res.status(400).json({ message: "please fill all the fileds" })
+    if (!user) return res.status(404).json({ message: "Invalid email" });
 
-        const user = await UserModel.findOne({ email })
+    const verifyPassword = await bcrypt.compare(password, user.password);
 
-        if (!user) return res.status(404).json({ message: "Invalid email address" })
+    if (!verifyPassword)
+      return res.status(404).json({ message: "Invalid credentials" });
 
-        const verifyPassword = await bcrypt.compare(password, user.password
-        )
+    const token = GenToken(user._id);
 
-        if (!verifyPassword) return res.status(403).json({ message: "Invalid creadentials" })
-
-        const userResponse = {
-            _id: user._id,
-            userName: user.userName,
-            email: user.email,
-            image: user.image
-        }
-
-        generateTokenAndSetCookie(user._id, res)
-
-        res.status(200).json({ message: "user login successfully", user: userResponse })
-
-
-    } catch (error) {
-        console.log(error);
-        return res.state(500).json('Internal server error during Login')
-    }
-}
-
-
-export const LogOut = async (req, res) => {
-    try {
-        res.clearCookie("token");
-        res.status(200).json({ success: true, message: "Logged out successfully" });
-    } catch (error) {
-        console.log("Error in logout controller", error.message);
-        res.status(500).json({ success: false, message: "Internal server error" });
-    }
-}
+    return res
+      .status(201)
+      .json({ message: "login successfully", token: token });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error during  login" });
+  }
+};
