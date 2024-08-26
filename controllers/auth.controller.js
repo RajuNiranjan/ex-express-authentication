@@ -26,9 +26,16 @@ export const Register = async (req, res) => {
     await newUser.save();
 
     const token = GenToken(newUser._id);
-    return res
-      .status(201)
-      .json({ message: "registration successfully", token: token });
+    const userResponse = {
+      _id: newUser._id,
+      userName: newUser.userName,
+      email: newUser.email,
+    };
+    return res.status(201).json({
+      message: "registration successfully",
+      token: token,
+      user: userResponse,
+    });
   } catch (error) {
     console.log(error);
     res
@@ -55,11 +62,43 @@ export const LogIN = async (req, res) => {
 
     const token = GenToken(user._id);
 
-    return res
-      .status(201)
-      .json({ message: "login successfully", token: token });
+    const userResponse = {
+      _id: user._id,
+      userName: user.userName,
+      email: user.email,
+    };
+
+    return res.status(201).json({
+      message: "login successfully",
+      token: token,
+      user: userResponse,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error during  login" });
+  }
+};
+
+export const getUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
+    }
+    const userResponse = {
+      _id: user._id,
+      userName: user.userName,
+      email: user.email,
+    };
+    return res.status(201).json({
+      message: "user infos",
+      user: userResponse,
+    });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ message: "Internal server error during  fetching user" });
   }
 };
